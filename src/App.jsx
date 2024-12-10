@@ -10,37 +10,39 @@ const NewsApp = () => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
 
-  const fetchData = async (query = 'latest soccer') => {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
+
     try {
       const response = await axios.get(
-        `https://newsapi.org/v2/everything?q=${query}&apiKey=d7f729f53c5040f7a1a2adbf86a857a8`
+        `https://gnews.io/api/v4/search?q=${searchQuery || 'soccer'}&token=02e957b312a7f620f745fae1245457fa&lang=en&max=10`
       );
+
       const validArticles = response.data.articles.filter(
         (article) =>
           article.title &&
-          article.title !== "[Removed]" &&
           article.description &&
-          article.description !== "[Removed]"
+          article.image &&
+          article.url
       );
+
       setArticles(validArticles);
     } catch (err) {
+      console.error("Error fetching news:", err);
       setError("Failed to fetch news. Check your connection.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch default news on component mount
   useEffect(() => {
-    fetchData(); // Fetches default "latest soccer" news
+    fetchData(); // Fetch default news on component load.
   }, []);
 
-  // Fetch search-specific news
   useEffect(() => {
     if (searchQuery) {
-      const timerId = setTimeout(() => fetchData(searchQuery), 500);
+      const timerId = setTimeout(fetchData, 500); // Debounce the API call.
       return () => clearTimeout(timerId);
     }
   }, [searchQuery]);
@@ -110,9 +112,9 @@ const NewsApp = () => {
                 key={article.url || index}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
               >
-                {article.urlToImage && (
+                {article.image && (
                   <img
-                    src={article.urlToImage}
+                    src={article.image}
                     alt={article.title}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                   />
